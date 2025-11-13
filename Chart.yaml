@@ -1,0 +1,12 @@
+apiVersion: v2
+name: base-app
+description: A flexible base chart for microservices (Deployment, CronJob, Job, Service, Ingress, HPA).
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+# Later, other charts can add this as dependency:
+# dependencies:
+#   - name: base-app
+#     version: 0.1.0
+#     repository: "oci://harbor.example.com/helm"

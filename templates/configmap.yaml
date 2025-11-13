@@ -1,0 +1,15 @@
+{{- if and .Values.configMaps.enabled .Values.configMaps.items }}
+{{- range .Values.configMaps.items }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "base-app.labels" $ | nindent 4 }}
+data:
+  {{- with .data }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}

@@ -1,0 +1,203 @@
+# Global defaults (can be overridden per-component)
+global:
+  image:
+    repository: nginx
+    tag: "1.27"
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []   # e.g. [{ name: regcred }]
+  env: []                # e.g. [{ name: "ENV", value: "prod" }]
+  envFrom:
+    configMaps: []       # e.g. ["my-config"]
+    secrets: []          # e.g. ["my-secret"]
+  resources: {}
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  securityContext: {}
+  podSecurityContext: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# --- Deployment (main API / worker) ---
+deployment:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: ""      # if empty, use global.image.repository
+    tag: ""             # if empty, use global.image.tag
+    pullPolicy: ""      # if empty, use global.image.pullPolicy
+
+  command: []           # override entrypoint
+  args: []              # override args
+
+  env: []               # merged on top of global.env
+  envFrom:
+    configMaps: []      # merged on top of global.envFrom.configMaps
+    secrets: []         # merged on top of global.envFrom.secrets
+
+  ports:
+    - name: http
+      containerPort: 80
+      protocol: TCP
+
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+  resources: {}         # override global.resources
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  securityContext: {}
+  podSecurityContext: {}
+
+  extraVolumeMounts: []
+  extraVolumes: []
+
+# --- Service ---
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: http
+  annotations: {}
+  labels: {}
+  sessionAffinity: None
+
+# --- Ingress (optional, ingress-nginx / traefik) ---
+ingress:
+  enabled: false
+  className: ""          # e.g. "nginx"
+  annotations: {}
+  hosts:
+    - host: example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  # tls:
+  #   - secretName: example-tls
+  #     hosts:
+  #       - example.local
+
+# --- ConfigMaps (multi) ---
+configMaps:
+  enabled: false
+  items:
+    - name: example-config
+      data:
+        APP_NAME: "demo"
+        LOG_LEVEL: "info"
+      # or stringData if needed
+
+# --- Secrets (multi, generic) ---
+secrets:
+  enabled: false
+  items:
+    - name: example-secret
+      type: Opaque
+      data: {}        # base64 encoded
+      stringData: {}  # raw string (Helm will not base64-encode automatically; k8s will handle)
+
+# --- CronJobs (multi) ---
+cronjobs:
+  enabled: false
+  jobs:
+    - name: sample-cron
+      schedule: "0 * * * *"
+      suspend: false
+      concurrencyPolicy: Forbid
+      startingDeadlineSeconds: 30
+      successfulJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 3
+      ttlSecondsAfterFinished: 600
+
+      image:
+        repository: ""
+        tag: ""
+        pullPolicy: ""
+
+      env: []
+      envFrom:
+        configMaps: []
+        secrets: []
+
+      command: []   # e.g. ["sh", "-c"]
+      args: []      # e.g. ["echo hello from cron"]
+
+      resources: {}
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      podAnnotations: {}
+      podLabels: {}
+      securityContext: {}
+      podSecurityContext: {}
+      extraVolumes: []
+      extraVolumeMounts: []
+
+# --- One-off Jobs (multi) ---
+jobs:
+  enabled: false
+  items:
+    - name: migrate-db
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 3
+
+      image:
+        repository: ""
+        tag: ""
+        pullPolicy: ""
+
+      env: []
+      envFrom:
+        configMaps: []
+        secrets: []
+
+      command: []
+      args: []
+
+      resources: {}
+      nodeSelector: {}
+      tolerations: []
+      affinity: {}
+      podAnnotations: {}
+      podLabels: {}
+      securityContext: {}
+      podSecurityContext: {}
+      extraVolumes: []
+      extraVolumeMounts: []
+
+# --- HPA ---
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# imagePullSecrets example:
+# imagePullSecrets:
+#   - name: regcred

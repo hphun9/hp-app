@@ -1,0 +1,129 @@
+{{- if .Values.deployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "base-app.fullname" . }}
+  labels:
+    {{- include "base-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "base-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "base-app.selectorLabels" . | nindent 8 }}
+        {{- with .Values.global.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.deployment.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- $ann := dict }}
+      {{- if .Values.global.podAnnotations }}
+      {{- $_ := merge $ann .Values.global.podAnnotations }}
+      {{- end }}
+      {{- if .Values.deployment.podAnnotations }}
+      {{- $_ := merge $ann .Values.deployment.podAnnotations }}
+      {{- end }}
+      {{- if $ann }}
+      annotations:
+        {{- toYaml $ann | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "base-app.serviceAccountName" . }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.global.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "base-app.name" . }}
+          {{- $img := dict "image" .Values.deployment.image "Values" .Values "Chart" .Chart "Release" .Release "Capabilities" .Capabilities }}
+          {{- $parsed := include "base-app.image" $img | fromYaml }}
+          image: "{{ $parsed.repository }}:{{ $parsed.tag }}"
+          imagePullPolicy: {{ $parsed.pullPolicy }}
+          {{- with .Values.deployment.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.deployment.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          env:
+            {{- range .Values.global.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+            {{- range .Values.deployment.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+
+          {{- $cfgs := concat (default (list) .Values.global.envFrom.configMaps) (default (list) .Values.deployment.envFrom.configMaps) }}
+          {{- $secs := concat (default (list) .Values.global.envFrom.secrets) (default (list) .Values.deployment.envFrom.secrets) }}
+
+          {{- if or $cfgs $secs }}
+          envFrom:
+            {{- range $cfgs }}
+            - configMapRef:
+                name: {{ . | quote }}
+            {{- end }}
+            {{- range $secs }}
+            - secretRef:
+                name: {{ . | quote }}
+            {{- end }}
+          {{- end }}
+
+          ports:
+            {{- range .Values.deployment.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .containerPort }}
+              protocol: {{ .protocol | default "TCP" }}
+            {{- end }}
+
+          {{- if .Values.deployment.livenessProbe.enabled }}
+          livenessProbe:
+            {{- toYaml (omit .Values.deployment.livenessProbe "enabled") | nindent 12 }}
+          {{- end }}
+          {{- if .Values.deployment.readinessProbe.enabled }}
+          readinessProbe:
+            {{- toYaml (omit .Values.deployment.readinessProbe "enabled") | nindent 12 }}
+          {{- end }}
+
+          resources:
+            {{- default .Values.global.resources .Values.deployment.resources | toYaml | nindent 12 }}
+
+          {{- with .Values.deployment.extraVolumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+      {{- $vols := list }}
+      {{- if .Values.deployment.extraVolumes }}
+      {{- $vols = .Values.deployment.extraVolumes }}
+      {{- end }}
+      {{- if $vols }}
+      volumes:
+        {{- toYaml $vols | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

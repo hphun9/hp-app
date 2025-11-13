@@ -1,0 +1,11 @@
+1. To see the Deployment pods:
+   kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2. To see CronJobs:
+   kubectl get cronjobs -l app.kubernetes.io/instance={{ .Release.Name }}
+
+3. To see Jobs:
+   kubectl get jobs -l app.kubernetes.io/instance={{ .Release.Name }}
+
+4. Service:
+   kubectl get svc {{ include "base-app.fullname" . }}

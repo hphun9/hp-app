@@ -1,0 +1,98 @@
+{{- if and .Values.jobs.enabled .Values.jobs.items }}
+{{- range $i, $job := .Values.jobs.items }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "base-app.fullname" $ }}-{{ $job.name }}
+  labels:
+    {{- include "base-app.labels" $ | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: {{ default 3600 $job.ttlSecondsAfterFinished }}
+  backoffLimit: {{ default 3 $job.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        {{- include "base-app.selectorLabels" $ | nindent 8 }}
+        {{- with $job.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with $job.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "base-app.serviceAccountName" $ }}
+      {{- with $.Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+        - name: {{ $job.name }}
+          {{- $img := dict "image" $job.image "Values" $.Values "Chart" $.Chart "Release" $.Release "Capabilities" $.Capabilities }}
+          {{- $parsed := include "base-app.image" $img | fromYaml }}
+          image: "{{ $parsed.repository }}:{{ $parsed.tag }}"
+          imagePullPolicy: {{ $parsed.pullPolicy }}
+
+          {{- with $job.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $job.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          env:
+            {{- range $.Values.global.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+            {{- range $job.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+
+          {{- $cfgs := concat (default (list) $.Values.global.envFrom.configMaps) (default (list) $job.envFrom.configMaps) }}
+          {{- $secs := concat (default (list) $.Values.global.envFrom.secrets) (default (list) $job.envFrom.secrets) }}
+
+          {{- if or $cfgs $secs }}
+          envFrom:
+            {{- range $cfgs }}
+            - configMapRef:
+                name: {{ . | quote }}
+            {{- end }}
+            {{- range $secs }}
+            - secretRef:
+                name: {{ . | quote }}
+            {{- end }}
+          {{- end }}
+
+          resources:
+            {{- default $.Values.global.resources $job.resources | toYaml | nindent 12 }}
+
+          {{- with $job.extraVolumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+      {{- with $job.extraVolumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with $job.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $job.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $job.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+{{- end }}
+{{- end }}
