@@ -8,4 +8,4 @@
    kubectl get jobs -l app.kubernetes.io/instance={{ .Release.Name }}
 
 4. Service:
-   kubectl get svc {{ include "base-app.fullname" . }}
+   kubectl get svc {{ include "hp-app.fullname" . }}

@@ -1,0 +1,42 @@
+# General
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node / frontend (if used for tooling or UI)
+node_modules/
+dist/
+build/
+coverage/
+
+# Python (if used for tooling)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+
+# Go (if used)
+bin/
+*.out
+
+# Helm
+.chart/
+charts/
+tmp/
+*.tgz
+
+# Kubernetes / local
+.kube/
+.kubectl-cache/
+
+# Logs
+*.log
+logs/

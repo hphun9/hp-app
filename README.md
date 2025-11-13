@@ -25,7 +25,7 @@ Designed to be reused as a base chart for any application by overriding values.
 ## 📁 Directory Structure
 
 ```bash
-base-app/
+hp-app/
   Chart.yaml
   values.yaml
   templates/
@@ -62,13 +62,13 @@ microk8s enable metrics-server
 ### 2. Install the chart from local directory
 
 ```bash
-helm install my-app ./base-app -f my-values.yaml
+helm install my-app ./hp-app -f my-values.yaml
 ```
 
 ### 3. Upgrade release
 
 ```bash
-helm upgrade my-app ./base-app -f my-values.yaml
+helm upgrade my-app ./hp-app -f my-values.yaml
 ```
 
 ### 4. Uninstall release
@@ -83,11 +83,11 @@ helm uninstall my-app
 
 ## 1. Package the chart
 
-From the directory that contains `base-app/`:
+From the directory that contains `hp-app/`:
 
 ```bash
-helm package base-app
-# -> base-app-0.1.0.tgz
+helm package hp-app
+# -> hp-app-0.1.0.tgz
 ```
 
 ## 2. Login to Harbor (OCI registry)
@@ -99,7 +99,7 @@ helm registry login harbor.example.com   --username admin   --password <password
 ## 3. Push the chart to Harbor
 
 ```bash
-helm push base-app-0.1.0.tgz oci://harbor.example.com/helm
+helm push hp-app-0.1.0.tgz oci://harbor.example.com/helm
 ```
 
 You should now see the chart in your Harbor project (e.g. `helm`).
@@ -111,13 +111,13 @@ You should now see the chart in your Harbor project (e.g. `helm`).
 ### 1. Install
 
 ```bash
-helm install my-app oci://harbor.example.com/helm/base-app   --version 0.1.0   -f my-values.yaml
+helm install my-app oci://harbor.example.com/helm/hp-app   --version 0.1.0   -f my-values.yaml
 ```
 
 ### 2. Upgrade
 
 ```bash
-helm upgrade my-app oci://harbor.example.com/helm/base-app   --version 0.1.0   -f my-values.yaml
+helm upgrade my-app oci://harbor.example.com/helm/hp-app   --version 0.1.0   -f my-values.yaml
 ```
 
 ### 3. List releases
@@ -170,13 +170,13 @@ cronjobs:
 Then install using Harbor:
 
 ```bash
-helm install my-app oci://harbor.example.com/helm/base-app   --version 0.1.0   -f my-values.yaml
+helm install my-app oci://harbor.example.com/helm/hp-app   --version 0.1.0   -f my-values.yaml
 ```
 
 Or from local directory:
 
 ```bash
-helm install my-app ./base-app -f my-values.yaml
+helm install my-app ./hp-app -f my-values.yaml
 ```
 
 ---
@@ -340,7 +340,7 @@ After deploying the chart, check Jobs:
 
 ```bash
 kubectl get jobs
-kubectl logs job/<release>-base-app-migrate-db
+kubectl logs job/<release>-hp-app-migrate-db
 ```
 
 If you want to rerun a similar Job manually:

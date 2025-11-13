@@ -3,9 +3,9 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "base-app.fullname" $ }}-{{ $job.name }}
+  name: {{ include "hp-app.fullname" $ }}-{{ $job.name }}
   labels:
-    {{- include "base-app.labels" $ | nindent 4 }}
+    {{- include "hp-app.labels" $ | nindent 4 }}
 spec:
   schedule: {{ $job.schedule | quote }}
   suspend: {{ default false $job.suspend }}
@@ -21,7 +21,7 @@ spec:
       template:
         metadata:
           labels:
-            {{- include "base-app.selectorLabels" $ | nindent 12 }}
+            {{- include "hp-app.selectorLabels" $ | nindent 12 }}
             {{- with $job.podLabels }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -30,7 +30,7 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
         spec:
-          serviceAccountName: {{ include "base-app.serviceAccountName" $ }}
+          serviceAccountName: {{ include "hp-app.serviceAccountName" $ }}
           {{- with $.Values.global.imagePullSecrets }}
           imagePullSecrets:
             {{- toYaml . | nindent 12 }}
@@ -39,7 +39,7 @@ spec:
           containers:
             - name: {{ $job.name }}
               {{- $img := dict "image" $job.image "Values" $.Values "Chart" $.Chart "Release" $.Release "Capabilities" $.Capabilities }}
-              {{- $parsed := include "base-app.image" $img | fromYaml }}
+              {{- $parsed := include "hp-app.image" $img | fromYaml }}
               image: "{{ $parsed.repository }}:{{ $parsed.tag }}"
               imagePullPolicy: {{ $parsed.pullPolicy }}
 

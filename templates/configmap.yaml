@@ -5,7 +5,7 @@ kind: ConfigMap
 metadata:
   name: {{ .name }}
   labels:
-    {{- include "base-app.labels" $ | nindent 4 }}
+    {{- include "hp-app.labels" $ | nindent 4 }}
 data:
   {{- with .data }}
   {{- toYaml . | nindent 2 }}

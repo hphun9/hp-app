@@ -2,18 +2,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "base-app.fullname" . }}
+  name: {{ include "hp-app.fullname" . }}
   labels:
-    {{- include "base-app.labels" . | nindent 4 }}
+    {{- include "hp-app.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.deployment.replicaCount }}
   selector:
     matchLabels:
-      {{- include "base-app.selectorLabels" . | nindent 6 }}
+      {{- include "hp-app.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "base-app.selectorLabels" . | nindent 8 }}
+        {{- include "hp-app.selectorLabels" . | nindent 8 }}
         {{- with .Values.global.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -32,7 +32,7 @@ spec:
         {{- toYaml $ann | nindent 8 }}
       {{- end }}
     spec:
-      serviceAccountName: {{ include "base-app.serviceAccountName" . }}
+      serviceAccountName: {{ include "hp-app.serviceAccountName" . }}
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -42,9 +42,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ include "base-app.name" . }}
+        - name: {{ include "hp-app.name" . }}
           {{- $img := dict "image" .Values.deployment.image "Values" .Values "Chart" .Chart "Release" .Release "Capabilities" .Capabilities }}
-          {{- $parsed := include "base-app.image" $img | fromYaml }}
+          {{- $parsed := include "hp-app.image" $img | fromYaml }}
           image: "{{ $parsed.repository }}:{{ $parsed.tag }}"
           imagePullPolicy: {{ $parsed.pullPolicy }}
           {{- with .Values.deployment.command }}
